@@ -1,0 +1,1 @@
+Frenzyo started as an alternative to SMS. Our product now supports sending and receiving a variety of media: text, photos, videos, documents, and location, as well as voice calls. Some of your most personal moments are shared with Frenzyo, which is why we built end-to-end encryption into our app.
