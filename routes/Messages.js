@@ -57,7 +57,6 @@ router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 // Add a photo to a message
 router.post(
   "/message/:messageId/photos",
@@ -128,6 +127,36 @@ router.post(
       message.polls.push(poll);
       await message.save();
       res.status(200).json(message);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+//
+
+router.delete(
+  "/message/receiver/:receiverId",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    const { receiverId } = req.params;
+    try {
+      // Find all messages where the specified user is the receiver
+      const messages = await Message.find({ receiver: receiverId });
+
+      if (messages.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No messages found for this receiver" });
+      }
+
+      // Delete each message
+      for (const message of messages) {
+        await message.remove();
+      }
+
+      res
+        .status(200)
+        .json({ message: "User removed from chat list and messages deleted" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

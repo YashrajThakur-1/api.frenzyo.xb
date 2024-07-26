@@ -88,7 +88,7 @@ router.post(
         .json({ token: token, msg: "User Registration Successfully" });
     } catch (err) {
       console.error(err);
-      res.status(500).send("Server error");
+      res.status(500).json({ msg: "Internal Server Error" });
     }
   }
 );
@@ -132,7 +132,7 @@ router.get("/contacts", jsonAuthMiddleware, async (req, res) => {
     res.status(200).json({ data: contacts });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
@@ -204,7 +204,7 @@ router.get("/deleteUser", jsonAuthMiddleware, async (req, res) => {
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
@@ -232,7 +232,7 @@ router.post("/forgot-password", validateForgotPassword, async (req, res) => {
     res.status(200).json({ msg: "Verification code sent to email" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
@@ -265,6 +265,29 @@ router.post("/reset-password", validateResetPassword, async (req, res) => {
     res.status(200).json({ msg: "Password reset successfully" });
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+// Theme Refrence
+router.put("/users/theme", async (req, res) => {
+  try {
+    const { userId, themePreference } = req.body;
+
+    if (!["light", "dark", "system_default"].includes(themePreference)) {
+      return res.status(400).json({ msg: "Invalid theme preference" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    user.themePreference = themePreference;
+    await user.save();
+
+    res.json({ msg: "Theme preference updated successfully" });
+  } catch (err) {
     res.status(500).send("Server error");
   }
 });

@@ -46,6 +46,11 @@ const userSchema = new Schema(
     resetPasswordExpires: {
       type: Date,
     },
+    themePreference: {
+      type: String,
+      enum: ["light", "dark", "system_default"],
+      default: "system_default",
+    },
   },
   {
     timestamps: true,

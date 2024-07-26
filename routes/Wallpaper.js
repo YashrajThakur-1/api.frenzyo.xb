@@ -58,9 +58,9 @@ router.get("/Wallpapers", async (req, res) => {
 router.get("/wallpaper/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const data = await Wallpaper.findById(id);
+    const data = await WallPaper.findById(id);
     if (!data) {
-      res.status(404).json({ msg: "User Not Found" });
+      res.status(404).json({ msg: "WallPaper Not Found" });
     }
     res.status(200).json({ data: data, status: true });
   } catch (error) {}

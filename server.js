@@ -113,7 +113,7 @@ io.on("connection", (socket) => {
 });
 
 // Start the server
-const port = 3001;
+const port = process.env.PORT;
 http.listen(port, () => {
   console.log(`Server Running On Port ${port}`);
 });
