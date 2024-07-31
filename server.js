@@ -17,6 +17,7 @@ const groupRoutes = require("./routes/Groups"); // Import group routes
 const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
+const storyRoutes = require("./routes/Story");
 
 // Middleware and configurations
 app.use(
@@ -46,7 +47,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/groups", groupRoutes); // Use group routes
+app.use("/api/story", storyRoutes);
 app.use("/api/wallpaper", wallpaperRoutes);
 
 // Configure Socket.io with CORS

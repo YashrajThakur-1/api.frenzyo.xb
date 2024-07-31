@@ -1,15 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const Message = require("../model/MessageSchema.js");
-const {
-  jsonAuthMiddleware,
-  generateToken,
-  generateResetToken,
-  generateVerificationCode,
-} = require("../authorization/auth");
-const upload = require("../authorization/multer");
-
-// Middleware to protect routes
+const Message = require("../model/MessageSchema");
+const Group = require("../model/GroupSchema");
+const { jsonAuthMiddleware } = require("../authorization/auth");
+const upload = require("../middleware/multer");
 
 // Create a new message
 router.post("/message", jsonAuthMiddleware, async (req, res) => {
@@ -23,6 +17,7 @@ router.post("/message", jsonAuthMiddleware, async (req, res) => {
     await newMessage.save();
     res.status(201).json(newMessage);
   } catch (error) {
+    console.log("Error is", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -42,6 +37,7 @@ router.get(
       }).sort("sentAt");
       res.status(200).json(messages);
     } catch (error) {
+      console.log("Error is", error);
       res.status(500).json({ message: error.message });
     }
   }
@@ -54,9 +50,11 @@ router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
     const messages = await Message.find({ receiver: groupId }).sort("sentAt");
     res.status(200).json(messages);
   } catch (error) {
+    console.log("Error is", error);
     res.status(500).json({ message: error.message });
   }
 });
+
 // Add a photo to a message
 router.post(
   "/message/:messageId/photos",
@@ -79,6 +77,7 @@ router.post(
       await message.save();
       res.status(200).json(message);
     } catch (error) {
+      console.log("Error is", error);
       res.status(500).json({ message: error.message });
     }
   }
@@ -107,6 +106,7 @@ router.post(
       await message.save();
       res.status(200).json(message);
     } catch (error) {
+      console.log("Error is", error);
       res.status(500).json({ message: error.message });
     }
   }
@@ -128,36 +128,7 @@ router.post(
       await message.save();
       res.status(200).json(message);
     } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-//
-
-router.delete(
-  "/message/receiver/:receiverId",
-  jsonAuthMiddleware,
-  async (req, res) => {
-    const { receiverId } = req.params;
-    try {
-      // Find all messages where the specified user is the receiver
-      const messages = await Message.find({ receiver: receiverId });
-
-      if (messages.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No messages found for this receiver" });
-      }
-
-      // Delete each message
-      for (const message of messages) {
-        await message.remove();
-      }
-
-      res
-        .status(200)
-        .json({ message: "User removed from chat list and messages deleted" });
-    } catch (error) {
+      console.log("Error is", error);
       res.status(500).json({ message: error.message });
     }
   }
@@ -179,9 +150,84 @@ router.post(
       await message.save();
       res.status(200).json(message);
     } catch (error) {
+      console.log("Error is", error);
       res.status(500).json({ message: error.message });
     }
   }
 );
+
+// Delete all messages from a specific receiver
+router.delete(
+  "/message/receiver/:receiverId",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    const { receiverId } = req.params;
+    try {
+      const messages = await Message.find({ receiver: receiverId });
+      if (messages.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No messages found for this receiver" });
+      }
+      for (const message of messages) {
+        await message.remove();
+      }
+      res
+        .status(200)
+        .json({ message: "User removed from chat list and messages deleted" });
+    } catch (error) {
+      console.log("Error is", error);
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// Create a new group
+router.post("/group", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const group = new Group({ ...req.body });
+    await group.save();
+    res.status(201).json(group);
+  } catch (error) {
+    console.log("Error is", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get group by ID
+router.get("/group/:groupId", jsonAuthMiddleware, async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const group = await Group.findById(groupId).populate("messages");
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+    res.status(200).json(group);
+  } catch (error) {
+    console.log("Error is", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get group messages by group ID
+router.get("/group/:groupId/messages", jsonAuthMiddleware, async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const group = await Group.findById(groupId).populate({
+      path: "messages",
+      populate: {
+        path: "sender receiver",
+        select: "name email",
+      },
+    });
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+    res.status(200).json(group.messages);
+  } catch (error) {
+    console.log("Error is", error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;

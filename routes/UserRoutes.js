@@ -8,7 +8,7 @@ const {
   generateToken,
   generateVerificationCode,
 } = require("../authorization/auth");
-const sendVerificationCode = require("../authorization/resendotp");
+const sendVerificationCode = require("../middleware/resendotp");
 const router = express.Router();
 const {
   validateRegistration,
@@ -45,11 +45,16 @@ router.post(
       email,
       phone_number,
       password,
+      confirmPassword,
       bio,
       googleId,
       facebookId,
       appleId,
     } = req.body;
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ msg: "Passwords do not match" });
+    }
 
     try {
       // Check if user already exists
@@ -59,7 +64,7 @@ router.post(
       }
       let data = await User.findOne({ phone_number });
       if (data) {
-        return res.status(400).json({ msg: "phone_number already exists" });
+        return res.status(400).json({ msg: "Phone number already exists" });
       }
       // Get profile picture path if uploaded
       const profile_picture = req.file ? req.file.filename : "";
@@ -81,7 +86,7 @@ router.post(
       await user.save();
 
       // Generate JWT token
-      console.log("USer ", user);
+      console.log("User ", user);
       const token = generateToken(user);
       res
         .status(200)
@@ -270,7 +275,7 @@ router.post("/reset-password", validateResetPassword, async (req, res) => {
 });
 
 // Theme Refrence
-router.put("/users/theme", async (req, res) => {
+router.put("'/theme", async (req, res) => {
   try {
     const { userId, themePreference } = req.body;
 

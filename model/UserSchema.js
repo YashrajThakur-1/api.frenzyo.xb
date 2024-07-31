@@ -40,6 +40,9 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    address: {
+      type: String,
+    },
     resetPasswordCode: {
       type: String,
     },

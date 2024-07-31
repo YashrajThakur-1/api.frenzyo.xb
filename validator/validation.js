@@ -17,10 +17,10 @@ const registrationSchema = Joi.object({
     "string.min": "Password must be at least 6 characters long",
     "string.empty": "Password is required",
   }),
-  // confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
-  //   "any.only": "Confirm Password does not match",
-  //   "string.empty": "Confirm Password is required",
-  // }),
+  confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
+    "any.only": "Confirm Password does not match",
+    "string.empty": "Confirm Password is required",
+  }),
   bio: Joi.string().optional(),
   googleId: Joi.string().optional(),
   facebookId: Joi.string().optional(),
