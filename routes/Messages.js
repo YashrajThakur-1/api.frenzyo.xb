@@ -43,6 +43,19 @@ router.get(
   }
 );
 
+router.get("/message", jsonAuthMiddleware, async (req, res) => {
+  const userId = req.user.userData._id;
+  try {
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+    }).sort("sentAt");
+    res.status(200).json(messages);
+  } catch (error) {
+    console.log("Error is", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get all messages in a group chat
 router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
   const { groupId } = req.params;

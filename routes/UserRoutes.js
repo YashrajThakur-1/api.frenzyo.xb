@@ -297,6 +297,25 @@ router.put("'/theme", async (req, res) => {
   }
 });
 
+router.get("/search-users", async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    if (!name) {
+      return res.status(400).json({ msg: "name query parameter is required" });
+    }
+
+    const users = await User.find({
+      name: { $regex: meaning, $options: "i" },
+    });
+
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 // Google Authentication Route
 // router.get(
 //   "/auth/google",

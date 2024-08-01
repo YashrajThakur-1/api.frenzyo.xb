@@ -19,7 +19,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Route to add a new story
+const isStoryRecent = (createdAt) => {
+  const now = new Date();
+  const storyDate = new Date(createdAt);
+  const differenceInHours = (now - storyDate) / (1000 * 60 * 60);
+  return differenceInHours <= 24;
+};
+
+// Route to add anew  story
 router.post(
   "/addStory",
   jsonAuthMiddleware,
@@ -162,6 +169,10 @@ router.get("/stories/:id", jsonAuthMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Story not found" });
     }
 
+    if (!isStoryRecent(story.createdAt)) {
+      return res.status(404).json({ message: "Story not found" });
+    }
+
     res.status(200).json(story);
   } catch (error) {
     console.error(error);
@@ -177,7 +188,13 @@ router.get("/stories", jsonAuthMiddleware, async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("user", "username"); // Populate user details
 
-    const sortedStories = stories.sort((a, b) => {
+    // Filter out stories older than 24 hours
+    const recentStories = stories.filter((story) =>
+      isStoryRecent(story.createdAt)
+    );
+
+    // Sort the stories to show current user's stories first
+    const sortedStories = recentStories.sort((a, b) => {
       if (a.user._id.equals(userId) && !b.user._id.equals(userId)) return -1;
       if (!a.user._id.equals(userId) && b.user._id.equals(userId)) return 1;
       return 0;
