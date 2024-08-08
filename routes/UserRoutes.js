@@ -250,7 +250,6 @@ router.post("/reset-password", validateResetPassword, async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-
     // Verify the code and check if it has expired
     if (
       user.resetPasswordCode !== verificationCode ||

@@ -13,7 +13,7 @@ const session = require("express-session");
 const db = require("./database/db");
 const userRoutes = require("./routes/UserRoutes");
 const messageRoutes = require("./routes/Messages");
-const groupRoutes = require("./routes/Groups"); // Import group routes
+// const groupRoutes = require("./routes/Groups"); // Import group routes
 const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
@@ -54,7 +54,7 @@ app.use("/api/wallpaper", wallpaperRoutes);
 const io = socketIo(http, {
   cors: {
     origin: "*", // You can specify your client's domain here
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type"],
     credentials: true,
   },
@@ -77,7 +77,7 @@ io.on("connection", (socket) => {
         receiver: data.receiverId,
       });
       await newMessage.save();
-
+      console.log("newMessages ::::::", newMessage);
       io.to(data.receiverId).emit("receiveMessage", newMessage);
       console.log("Message sent and saved:", newMessage);
     } catch (error) {
@@ -115,6 +115,7 @@ io.on("connection", (socket) => {
 
 // Start the server
 const port = process.env.PORT;
+
 http.listen(port, () => {
   console.log(`Server Running On Port ${port}`);
 });
