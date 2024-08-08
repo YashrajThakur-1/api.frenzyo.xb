@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const Schema = mongoose.Schema;
 
 // Define schemas for shareable items
@@ -7,7 +6,7 @@ const photoSchema = new Schema({
   fileName: String,
   fileSize: Number,
   url: String,
-  timestamp: Date,
+  timestamp: { type: Date, default: Date.now },
 });
 
 const documentSchema = new Schema({
@@ -15,7 +14,7 @@ const documentSchema = new Schema({
   documentType: String,
   documentSize: Number,
   url: String,
-  timestamp: Date,
+  timestamp: { type: Date, default: Date.now },
 });
 
 const pollOptionSchema = new Schema({
@@ -42,7 +41,7 @@ const contactSchema = new Schema({
     latitude: Number,
     longitude: Number,
   },
-  sharedAt: Date,
+  sharedAt: { type: Date, default: Date.now },
 });
 
 // Define main message schema

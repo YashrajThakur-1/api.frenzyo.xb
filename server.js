@@ -9,7 +9,6 @@ const passport = require("passport");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const session = require("express-session");
-
 const db = require("./database/db");
 const userRoutes = require("./routes/UserRoutes");
 const messageRoutes = require("./routes/Messages");
@@ -18,6 +17,7 @@ const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
 const storyRoutes = require("./routes/Story");
+const upload = require("./middleware/multer");
 
 // Middleware and configurations
 app.use(
@@ -62,22 +62,26 @@ const io = socketIo(http, {
 
 // Socket.io connection
 io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
+  console.log("New client connected. Socket ID:", socket.id);
 
   socket.on("sendMessage", async (data) => {
+    console.log("sendMessage event received with data:", data);
+
     try {
-      console.log("sendMessage event received with data:", data);
+      const uploadedFiles = await handleFileUpload(data.files);
+      console.log("Files uploaded successfully:", uploadedFiles);
+
       const newMessage = new Message({
         ...data,
         sender: data.senderId,
         receiver: data.receiverId,
+        photos: uploadedFiles.photos,
+        documents: uploadedFiles.documents,
+        polls: data.polls,
+        contacts: data.contacts,
       });
       await newMessage.save();
-      console.log("newMessages ::::::", newMessage);
+
       io.to(data.receiverId).emit("receiveMessage", newMessage);
       console.log("Message sent and saved:", newMessage);
     } catch (error) {
@@ -92,10 +96,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendGroupMessage", async (data) => {
+    console.log("sendGroupMessage event received with data:", data);
+
     try {
-      console.log("sendGroupMessage event received with data:", data);
-      const newMessage = new Message(data);
+      const uploadedFiles = await handleFileUpload(data.files);
+      console.log("Files uploaded successfully:", uploadedFiles);
+
+      const newMessage = new Message({
+        ...data,
+        photos: uploadedFiles.photos,
+        documents: uploadedFiles.documents,
+        polls: data.polls,
+        contacts: data.contacts,
+      });
       await newMessage.save();
+      console.log("Group message saved:", newMessage);
 
       const group = await Group.findById(data.room);
       if (!group) {
@@ -104,17 +119,51 @@ io.on("connection", (socket) => {
       }
       group.messages.push(newMessage);
       await group.save();
+      console.log("Group updated with new message.");
 
       io.to(data.room).emit("receiveGroupMessage", newMessage);
-      console.log("Group message sent and saved:", newMessage);
+      console.log("Group message sent to room:", data.room);
     } catch (error) {
       console.error("Error sending group message:", error);
     }
   });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected. Socket ID:", socket.id);
+  });
 });
 
+// Function to handle file uploads
+const handleFileUpload = async (files) => {
+  let photos = [];
+  let documents = [];
+
+  console.log("Handling file upload. Files:", files);
+
+  try {
+    if (files) {
+      const uploadedPhotos = files.filter((file) =>
+        file.mimetype.startsWith("image/")
+      );
+      const uploadedDocuments = files.filter(
+        (file) => !file.mimetype.startsWith("image/")
+      );
+
+      photos = uploadedPhotos.map((file) => file.filename);
+      documents = uploadedDocuments.map((file) => file.filename);
+
+      console.log("Photos uploaded:", photos);
+      console.log("Documents uploaded:", documents);
+    }
+  } catch (error) {
+    console.error("Error handling file upload:", error);
+  }
+
+  return { photos, documents };
+};
+
 // Start the server
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 http.listen(port, () => {
   console.log(`Server Running On Port ${port}`);

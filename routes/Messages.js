@@ -72,7 +72,7 @@ router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
 router.post(
   "/message/:messageId/photos",
   jsonAuthMiddleware,
-  upload.single("photo"),
+  upload.array("photo", 10),
   async (req, res) => {
     const { messageId } = req.params;
     try {
@@ -100,7 +100,8 @@ router.post(
 router.post(
   "/message/:messageId/documents",
   jsonAuthMiddleware,
-  upload.single("document"),
+  upload.array("documents", 10),
+
   async (req, res) => {
     const { messageId } = req.params;
     try {
