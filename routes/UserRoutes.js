@@ -53,7 +53,9 @@ router.post(
     } = req.body;
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ msg: "Passwords do not match" });
+      return res
+        .status(400)
+        .json({ msg: "Passwords and confirmPassword do not match" });
     }
 
     try {

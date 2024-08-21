@@ -17,18 +17,27 @@ const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
 const storyRoutes = require("./routes/Story");
-const upload = require("./middleware/multer");
-
+const multer = require("multer");
 // Middleware and configurations
 app.use(
   cors({
     origin: "*", // Consider replacing "*" with specific domains
-    methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
+    methods: ["POST", "GET", "PUT", "DELETE", "PATCH", "UPDATE"],
   })
 );
 
 require("./routes/passport"); // Ensure this path is correct
+//multer middlewares
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
 
+const upload = multer({ storage }).array("files");
 // Express session
 app.use(
   session({
@@ -64,10 +73,12 @@ const io = socketIo(http, {
 io.on("connection", (socket) => {
   console.log("New client connected. Socket ID:", socket.id);
 
+  // Handle direct messages
   socket.on("sendMessage", async (data) => {
     console.log("sendMessage event received with data:", data);
 
     try {
+      // Handle file uploads and save message
       const uploadedFiles = await handleFileUpload(data.files);
       console.log("Files uploaded successfully:", uploadedFiles);
 
@@ -77,11 +88,15 @@ io.on("connection", (socket) => {
         receiver: data.receiverId,
         photos: uploadedFiles.photos,
         documents: uploadedFiles.documents,
+        audio: uploadedFiles.audio, // Handling audio files
+        video: uploadedFiles.video, // Handling video files
         polls: data.polls,
         contacts: data.contacts,
       });
+
       await newMessage.save();
 
+      // Emit the message to the specific receiver
       io.to(data.receiverId).emit("receiveMessage", newMessage);
       console.log("Message sent and saved:", newMessage);
     } catch (error) {
@@ -89,16 +104,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("joinRoom", (room) => {
-    console.log(`joinRoom event received. Room: ${room}`);
-    socket.join(room);
-    console.log(`User joined room: ${room}`);
-  });
-
+  // Handle group messages
   socket.on("sendGroupMessage", async (data) => {
     console.log("sendGroupMessage event received with data:", data);
 
     try {
+      // Handle file uploads and save message
       const uploadedFiles = await handleFileUpload(data.files);
       console.log("Files uploaded successfully:", uploadedFiles);
 
@@ -106,21 +117,27 @@ io.on("connection", (socket) => {
         ...data,
         photos: uploadedFiles.photos,
         documents: uploadedFiles.documents,
+        audio: uploadedFiles.audio, // Handling audio files
+        video: uploadedFiles.video, // Handling video files
         polls: data.polls,
         contacts: data.contacts,
       });
+
       await newMessage.save();
       console.log("Group message saved:", newMessage);
 
+      // Find the group and update it with the new message
       const group = await Group.findById(data.room);
       if (!group) {
         console.error("Group not found:", data.room);
         return;
       }
+
       group.messages.push(newMessage);
       await group.save();
       console.log("Group updated with new message.");
 
+      // Emit the message to all clients in the room
       io.to(data.room).emit("receiveGroupMessage", newMessage);
       console.log("Group message sent to room:", data.room);
     } catch (error) {
@@ -137,6 +154,8 @@ io.on("connection", (socket) => {
 const handleFileUpload = async (files) => {
   let photos = [];
   let documents = [];
+  let audio = [];
+  let video = [];
 
   console.log("Handling file upload. Files:", files);
 
@@ -146,20 +165,32 @@ const handleFileUpload = async (files) => {
         file.mimetype.startsWith("image/")
       );
       const uploadedDocuments = files.filter(
-        (file) => !file.mimetype.startsWith("image/")
+        (file) =>
+          file.mimetype === "application/pdf" ||
+          file.mimetype.startsWith("application/")
+      );
+      const uploadedAudio = files.filter((file) =>
+        file.mimetype.startsWith("audio/")
+      );
+      const uploadedVideo = files.filter((file) =>
+        file.mimetype.startsWith("video/")
       );
 
       photos = uploadedPhotos.map((file) => file.filename);
       documents = uploadedDocuments.map((file) => file.filename);
+      audio = uploadedAudio.map((file) => file.filename);
+      video = uploadedVideo.map((file) => file.filename);
 
       console.log("Photos uploaded:", photos);
       console.log("Documents uploaded:", documents);
+      console.log("Audio files uploaded:", audio);
+      console.log("Video files uploaded:", video);
     }
   } catch (error) {
     console.error("Error handling file upload:", error);
   }
 
-  return { photos, documents };
+  return { photos, documents, audio, video };
 };
 
 // Start the server
