@@ -40,68 +40,73 @@ router.post(
   upload.single("profile_picture"),
   validateRegistration,
   async (req, res) => {
-    const { name, email, phone_number, password, confirmPassword } = req.body;
+    const {
+      name,
+      email,
+      phone_number,
+      password,
+      confirmPassword,
+      bio,
+      googleId,
+      facebookId,
+      appleId,
+    } = req.body;
 
     if (password !== confirmPassword) {
       return res
         .status(400)
-        .json({
-          error: true,
-          message:
-            "Passwords do not match. Please ensure both passwords are the same.",
-        });
+        .json({ msg: "Passwords and confirmPassword do not match" });
     }
 
     try {
       // Check if user already exists
       let user = await User.findOne({ email });
       if (user) {
-        return res
-          .status(400)
-          .json({
-            error: true,
-            message:
-              "An account with this email already exists. Please log in.",
-          });
+        return res.status(400).json({ msg: "User already exists" });
       }
       let data = await User.findOne({ phone_number });
       if (data) {
-        return res
-          .status(400)
-          .json({
-            error: true,
-            message: "This phone number is already associated with an account.",
-          });
+        return res.status(400).json({ msg: "Phone number already exists" });
       }
-
-      // Save user and respond with success message
+      // Get profile picture path if uploaded
       const profile_picture = req.file ? req.file.filename : "";
-      user = new User({ name, email, password, phone_number, profile_picture });
+
+      // Create new user
+      user = new User({
+        name,
+        email,
+        password,
+        phone_number,
+        bio,
+        googleId,
+        facebookId,
+        appleId,
+        profile_picture,
+      });
+
+      // Save user to database
       await user.save();
 
+      // Generate JWT token
+      console.log("User ", user);
       const token = generateToken(user);
       res
         .status(200)
-        .json({ error: false, message: "Registration successful!", token });
+        .json({ msg: "User Registration Successfully", token: token });
     } catch (err) {
-      console.error("Registration error: ", err);
-      res
-        .status(500)
-        .json({
-          error: true,
-          message:
-            "An error occurred while processing your registration. Please try again.",
-        });
+      console.error(err);
+      res.status(500).json({ msg: "Internal Server Error" });
     }
   }
 );
 
-// Login route
 router.post("/login", validateLogin, async (req, res) => {
   const { identifier, password } = req.body;
 
   try {
     let user;
+
+    // Check if identifier is an email or phone number
     const isEmail = identifier.includes("@");
 
     if (isEmail) {
@@ -113,25 +118,16 @@ router.post("/login", validateLogin, async (req, res) => {
     if (!user || !(await user.comparePassword(password))) {
       return res
         .status(401)
-        .json({
-          error: true,
-          message:
-            "Incorrect email/phone number or password. Please try again.",
-        });
+        .json({ message: "Invalid email/phone number or password" });
     }
 
     const token = generateToken(user);
-    res.status(200).json({ error: false, message: "Login successful!", token });
+    res.status(200).json({ msg: "User Login Successfully", token: token });
   } catch (err) {
-    console.error("Login error: ", err);
-    res
-      .status(500)
-      .json({
-        error: true,
-        message: "An error occurred during login. Please try again later.",
-      });
+    res.status(500).json({ message: err.message });
   }
 });
+
 // Get all users
 router.get("/contacts", jsonAuthMiddleware, async (req, res) => {
   try {
