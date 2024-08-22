@@ -92,7 +92,7 @@ router.post(
       const token = generateToken(user);
       res
         .status(200)
-        .json({ token: token, msg: "User Registration Successfully" });
+        .json({ msg: "User Registration Successfully", token: token });
     } catch (err) {
       console.error(err);
       res.status(500).json({ msg: "Internal Server Error" });
