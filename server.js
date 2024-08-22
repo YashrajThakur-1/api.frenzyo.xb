@@ -8,7 +8,6 @@ const passport = require("passport");
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const session = require("express-session");
 const db = require("./database/db");
 const userRoutes = require("./routes/UserRoutes");
 const messageRoutes = require("./routes/Messages");
@@ -38,18 +37,9 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage }).array("files");
-// Express session
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-  })
-);
 
 // Passport middleware
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(express.static(path.join(__dirname, "uploads")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
