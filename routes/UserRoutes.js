@@ -63,10 +63,12 @@ router.post(
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ msg: "User already exists" });
+        console.log(msg, "User already exists");
       }
       let data = await User.findOne({ phone_number });
       if (data) {
         return res.status(400).json({ msg: "Phone number already exists" });
+        console.log(msg, "Phone number already exists");
       }
       // Get profile picture path if uploaded
       const profile_picture = req.file ? req.file.filename : "";
@@ -119,12 +121,14 @@ router.post("/login", validateLogin, async (req, res) => {
       return res
         .status(401)
         .json({ message: "Invalid email/phone number or password" });
+      console.log("Invalid email/phone number or password");
     }
-
+    console.log("User Succesfull Login", user);
     const token = generateToken(user);
     res.status(200).json({ msg: "User Login Successfully", token: token });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
