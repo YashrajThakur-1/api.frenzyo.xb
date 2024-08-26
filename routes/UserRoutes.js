@@ -125,7 +125,9 @@ router.post("/login", validateLogin, async (req, res) => {
     }
     console.log("User Succesfull Login", user);
     const token = generateToken(user);
-    res.status(200).json({ msg: "User Login Successfully", token: token });
+    res
+      .status(200)
+      .json({ msg: "User Login Successfully", user: user, token: token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Internal Server Error" });
