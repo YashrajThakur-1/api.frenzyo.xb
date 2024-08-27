@@ -144,7 +144,7 @@ router.post("/login", validateLogin, async (req, res) => {
 
 router.post("/loginwithgoogle", async (req, res) => {
   const { email, googleId } = req.body;
-
+  console.log("Req.body", GoogleId);
   // Validate input
   if (!email || !googleId) {
     return res.status(400).json({ msg: "Email and Google ID are required" });
