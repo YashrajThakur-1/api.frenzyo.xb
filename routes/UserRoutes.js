@@ -142,6 +142,36 @@ router.post("/login", validateLogin, async (req, res) => {
   }
 });
 
+router.post("/loginwithgoogle", async (req, res) => {
+  const { email, googleId } = req.body;
+
+  // Validate input
+  if (!email || !googleId) {
+    return res.status(400).json({ msg: "Email and Google ID are required" });
+  }
+
+  try {
+    // Find the user by email and googleId
+    let user = await User.findOne({ email, googleId });
+
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json({ msg: "Invalid email or Google ID" });
+    }
+
+    console.log("User Successful Login", user);
+
+    // Generate JWT token
+    const token = generateToken(user);
+
+    // Respond with success and token
+    res.status(200).json({ msg: "User Login Successfully", user, token });
+  } catch (err) {
+    console.error(err.message || err);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 // Get all users
 router.get("/contacts", jsonAuthMiddleware, async (req, res) => {
   try {

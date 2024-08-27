@@ -37,7 +37,6 @@ const userSchema = new Schema(
     },
     appleId: {
       type: String,
-      default: null,
     },
     profile_picture: {
       type: String,
