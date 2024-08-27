@@ -53,24 +53,26 @@ router.post(
       appleId,
     } = req.body;
 
-    if (password !== confirmPassword) {
+    // If googleId is not provided, check password and confirmPassword
+    if (!googleId && password !== confirmPassword) {
       return res
         .status(400)
         .json({ msg: "Passwords and confirmPassword do not match" });
     }
 
     try {
-      // Check if user already exists
+      // Check if user already exists by email
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ msg: "User already exists" });
-        console.log(msg, "User already exists");
       }
+
+      // Check if phone number already exists
       let data = await User.findOne({ phone_number });
       if (data) {
         return res.status(400).json({ msg: "Phone number already exists" });
-        console.log(msg, "Phone number already exists");
       }
+
       // Get profile picture path if uploaded
       const profile_picture = req.file ? req.file.filename : "";
 
@@ -78,7 +80,6 @@ router.post(
       user = new User({
         name,
         email,
-        password,
         phone_number,
         bio,
         googleId,
@@ -88,15 +89,20 @@ router.post(
         profile_picture,
       });
 
+      // Only set password if googleId is not provided (regular signup)
+      if (!googleId) {
+        user.password = password;
+      }
+
       // Save user to database
       await user.save();
 
       // Generate JWT token
-      console.log("User ", user);
       const token = generateToken(user);
+      console.log("User", user);
       res
         .status(200)
-        .json({ msg: "User Registration Successfully", token: token });
+        .json({ msg: "User Registration Successfully", user, token });
     } catch (err) {
       console.error(err);
       res.status(500).json({ msg: "Internal Server Error" });
