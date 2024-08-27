@@ -93,13 +93,13 @@ router.post(
       if (!googleId) {
         user.password = password;
       }
+      console.log("User", user);
 
       // Save user to database
       await user.save();
 
       // Generate JWT token
       const token = generateToken(user);
-      console.log("User", user);
       res
         .status(200)
         .json({ msg: "User Registration Successfully", user, token });
@@ -144,7 +144,7 @@ router.post("/login", validateLogin, async (req, res) => {
 
 router.post("/loginwithgoogle", async (req, res) => {
   const { email, googleId } = req.body;
-  console.log("Req.body", GoogleId);
+  console.log("Req.body", req.body);
   // Validate input
   if (!email || !googleId) {
     return res.status(400).json({ msg: "Email and Google ID are required" });
