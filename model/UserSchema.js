@@ -18,7 +18,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
     },
     bio: {
       type: String,
@@ -27,6 +27,9 @@ const userSchema = new Schema(
     googleId: {
       type: String,
       default: null,
+    },
+    google_image_url: {
+      type: String,
     },
     facebookId: {
       type: String,
