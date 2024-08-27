@@ -53,7 +53,6 @@ router.post(
       appleId,
     } = req.body;
 
-    // If googleId is not provided, check password and confirmPassword
     if (!googleId && password !== confirmPassword) {
       return res
         .status(400)
@@ -76,7 +75,7 @@ router.post(
       // Get profile picture path if uploaded
       const profile_picture = req.file ? req.file.filename : "";
 
-      // Create new user
+      // Create new user instance
       user = new User({
         name,
         email,
@@ -93,9 +92,8 @@ router.post(
       if (!googleId) {
         user.password = password;
       }
-      console.log("User", user);
 
-      // Save user to database
+      // Save user to database (will trigger the password hashing middleware)
       await user.save();
 
       // Generate JWT token
