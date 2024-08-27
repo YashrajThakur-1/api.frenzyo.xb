@@ -16,6 +16,7 @@ const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
 const storyRoutes = require("./routes/Story");
+const contactRoutes = require("./routes/contactroutes");
 const multer = require("multer");
 // Middleware and configurations
 app.use(
@@ -48,6 +49,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/story", storyRoutes);
 app.use("/api/wallpaper", wallpaperRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Configure Socket.io with CORS
 const io = socketIo(http, {
@@ -78,8 +80,8 @@ io.on("connection", (socket) => {
         receiver: data.receiverId,
         photos: uploadedFiles.photos,
         documents: uploadedFiles.documents,
-        audio: uploadedFiles.audio, // Handling audio files
-        video: uploadedFiles.video, // Handling video files
+        audio: uploadedFiles.audio,
+        video: uploadedFiles.video,
         polls: data.polls,
         contacts: data.contacts,
       });

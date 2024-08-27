@@ -158,7 +158,9 @@ router.get("/user/:id", async (req, res) => {
       res.status(404).json({ msg: "User Not Found" });
     }
     res.status(200).json({ data: data, status: true });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 // Get a single profile
 router.get("/profile", jsonAuthMiddleware, async (req, res) => {

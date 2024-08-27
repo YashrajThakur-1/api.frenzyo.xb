@@ -31,6 +31,7 @@ const registrationSchema = Joi.object({
 const validateRegistration = (req, res, next) => {
   const { error } = registrationSchema.validate(req.body);
   if (error) {
+    console.log(error);
     return res
       .status(400)
       .json({ errors: error.details.map((err) => err.message) });
@@ -51,6 +52,8 @@ const loginSchema = Joi.object({
 const validateLogin = (req, res, next) => {
   const { error } = loginSchema.validate(req.body);
   if (error) {
+    console.log(error);
+
     return res
       .status(400)
       .json({ errors: error.details.map((err) => err.message) });
@@ -68,6 +71,8 @@ const forgotPasswordSchema = Joi.object({
 const validateForgotPassword = (req, res, next) => {
   const { error } = forgotPasswordSchema.validate(req.body);
   if (error) {
+    console.log(error);
+
     return res
       .status(400)
       .json({ errors: error.details.map((err) => err.message) });
@@ -92,6 +97,8 @@ const resetPasswordSchema = Joi.object({
 const validateResetPassword = (req, res, next) => {
   const { error } = resetPasswordSchema.validate(req.body);
   if (error) {
+    console.log(error);
+
     return res
       .status(400)
       .json({ errors: error.details.map((err) => err.message) });
