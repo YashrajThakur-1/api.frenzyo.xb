@@ -145,7 +145,9 @@ router.post("/loginwithgoogle", async (req, res) => {
   console.log("Req.body", req.body);
   // Validate input
   if (!email || !googleId) {
-    return res.status(400).json({ msg: "Email and Google ID are required" });
+    return res
+      .status(400)
+      .json({ message: "Email and Google ID are required" });
   }
 
   try {
@@ -154,7 +156,7 @@ router.post("/loginwithgoogle", async (req, res) => {
 
     // Check if user exists
     if (!user) {
-      return res.status(401).json({ msg: "Invalid email or Google ID" });
+      return res.status(401).json({ message: "Invalid email or Google ID" });
     }
 
     console.log("User Successful Login", user);
