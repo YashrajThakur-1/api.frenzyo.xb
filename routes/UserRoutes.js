@@ -292,7 +292,35 @@ router.post("/forgot-password", validateForgotPassword, async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+router.post("/verifyuser", async (req, res) => {
+  const { email, otp } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    user.isActive = true;
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Email verified successfully", status: true });
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error. Please try again later." });
+  }
+});
 // Reset Password route
 router.post("/reset-password", validateResetPassword, async (req, res) => {
   const { email, verificationCode, newPassword } = req.body;
