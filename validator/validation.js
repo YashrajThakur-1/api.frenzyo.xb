@@ -36,6 +36,7 @@ const registrationSchema = Joi.object({
       "string.empty": "Confirm Password is required",
     }),
   bio: Joi.string().optional(),
+  google_image_url: Joi.string().optional(),
   googleId: Joi.string().optional(),
   facebookId: Joi.string().optional(),
   appleId: Joi.string().optional(),
