@@ -97,7 +97,10 @@ router.post(
       await user.save();
 
       // Generate JWT token
+      console.log("User>>>>>>>>", user);
       const token = generateToken(user);
+      console.log("Token>>>>>>>", token);
+
       res
         .status(200)
         .json({ msg: "User Registration Successfully", user, token });
