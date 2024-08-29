@@ -347,10 +347,10 @@ router.post("/resendotp", async (req, res) => {
     user.resetPasswordCode = otp;
     user.resetPasswordExpires = otpExpires;
     await user.save();
-
+    console.log("USerr>>>>>>>>>>", user);
     await sendVerificationCode(email, otp);
     res.status(200).json({
-      message: "OTP resent to your email.",
+      message: "OTP resent to your email",
       status: true,
     });
   } catch (error) {
