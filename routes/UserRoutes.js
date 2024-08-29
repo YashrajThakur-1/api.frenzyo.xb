@@ -302,11 +302,10 @@ router.post("/verifyuser", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
+    if (user.otp !== otp || user.resetPasswordExpires < Date.now()) {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    user.isActive = true;
     user.resetPasswordCode = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
