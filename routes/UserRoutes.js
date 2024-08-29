@@ -342,7 +342,7 @@ router.post("/resendotp", async (req, res) => {
     }
 
     const otp = generateVerificationCode();
-    const otpExpires = new Date(Date.now() + 2 * 60 * 1000); // OTP expires in 2 minutes
+    const otpExpires = new Date(Date.now() + 3 * 60 * 1000); // OTP expires in 2 minutes
 
     user.resetPasswordCode = otp;
     user.resetPasswordExpires = otpExpires;
@@ -362,7 +362,7 @@ router.post("/resendotp", async (req, res) => {
 });
 // Reset Password route
 router.post("/reset-password", validateResetPassword, async (req, res) => {
-  const { email, verificationCode, newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -370,19 +370,10 @@ router.post("/reset-password", validateResetPassword, async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
     // Verify the code and check if it has expired
-    if (
-      user.resetPasswordCode !== verificationCode ||
-      Date.now() > user.resetPasswordExpires
-    ) {
-      return res
-        .status(400)
-        .json({ msg: "Invalid or expired verification code" });
-    }
 
     // Update the user's password
     user.password = newPassword;
-    user.resetPasswordCode = undefined; // Clear the reset code
-    user.resetPasswordExpires = undefined; // Clear the expiry time
+
     await user.save();
 
     res.status(200).json({ msg: "Password reset successfully" });
@@ -397,7 +388,7 @@ router.put("'/theme", jsonAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.userData._id;
     const { themePreference } = req.body;
-
+    console.log("userID");
     if (!["light", "dark", "system_default"].includes(themePreference)) {
       return res.status(400).json({ msg: "Invalid theme preference" });
     }
@@ -416,7 +407,7 @@ router.put("'/theme", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
-router.get("/search-users", async (req, res) => {
+router.post("/search-users", async (req, res) => {
   try {
     const { name } = req.query;
 
