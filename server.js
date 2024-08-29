@@ -11,9 +11,9 @@ const db = require("./database/db");
 const userRoutes = require("./routes/UserRoutes");
 const messageRoutes = require("./routes/Messages");
 // const groupRoutes = require("./routes/Groups"); // Import group routes
-const ejs = require("ejs");
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
+// const ejs = require("ejs");
+// app.set("views", path.join(__dirname, "views"));
+// app.set("view engine", "ejs");
 
 const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
@@ -63,7 +63,9 @@ const io = socketIo(http, {
     credentials: true,
   },
 });
-
+// app.get("/", (req, res) => {
+//   res.render("chat"); // This will render views/chat.ejs
+// });
 // Socket.io connection
 io.on("connection", (socket) => {
   console.log("New client connected. Socket ID:", socket.id);
@@ -81,6 +83,7 @@ io.on("connection", (socket) => {
         ...data,
         sender: data.senderId,
         receiver: data.receiverId,
+        message: data.text,
         photos: uploadedFiles.photos,
         documents: uploadedFiles.documents,
         audio: uploadedFiles.audio,

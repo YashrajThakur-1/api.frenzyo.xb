@@ -7,10 +7,10 @@ const upload = require("../middleware/multer");
 
 // Create a new message
 router.post("/message", jsonAuthMiddleware, async (req, res) => {
-  const { content, receiver, photos, documents, polls, contacts } = req.body;
+  const { message, receiver, photos, documents, polls, contacts } = req.body;
   try {
     const newMessage = new Message({
-      content,
+      message,
       receiver,
       sender: req.user.userData._id, // Set the sender to the logged-in user
     });
@@ -238,6 +238,50 @@ router.get("/group/:groupId/messages", jsonAuthMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
     res.status(200).json(group.messages);
+  } catch (error) {
+    console.log("Error is", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+// Get a list of users with whom the user has chatted, sorted by the latest message
+router.get("/chats", jsonAuthMiddleware, async (req, res) => {
+  const userId = req.user.userData._id;
+  try {
+    // Find all messages where the user is either the sender or the receiver
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+    })
+      .populate("sender", "name email") // Populate sender details
+      .populate("receiver", "name email") // Populate receiver details
+      .sort("-sentAt"); // Sort by latest message first
+
+    // Create a map to store the latest message for each user
+    const chatMap = new Map();
+
+    messages.forEach((message) => {
+      const otherUser =
+        message.sender._id.toString() === userId.toString()
+          ? message.receiver
+          : message.sender;
+
+      // If this user already exists in the map, check if this message is newer
+      if (
+        !chatMap.has(otherUser._id.toString()) ||
+        chatMap.get(otherUser._id.toString()).sentAt < message.sentAt
+      ) {
+        chatMap.set(otherUser._id.toString(), {
+          user: otherUser,
+          latestMessage: message,
+        });
+      }
+    });
+
+    // Convert the map to an array and sort by the latest message timestamp
+    const chatList = Array.from(chatMap.values()).sort(
+      (a, b) => b.latestMessage.sentAt - a.latestMessage.sentAt
+    );
+
+    res.status(200).json(chatList);
   } catch (error) {
     console.log("Error is", error);
     res.status(500).json({ message: error.message });
