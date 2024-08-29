@@ -333,7 +333,7 @@ router.post("/resendotp", async (req, res) => {
     }
 
     const otp = generateVerificationCode();
-    const otpExpires = new Date(Date.now() + 90 * 1000); // OTP expires in 90 seconds
+    const otpExpires = new Date(Date.now() + 2 * 60 * 1000); // OTP expires in 2 minutes
 
     user.resetPasswordCode = otp;
     user.resetPasswordExpires = otpExpires;
