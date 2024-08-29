@@ -361,7 +361,7 @@ router.post("/resendotp", async (req, res) => {
   }
 });
 // Reset Password route
-router.post("/reset-password", validateResetPassword, async (req, res) => {
+router.post("/reset-password", async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {

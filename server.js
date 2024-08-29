@@ -5,13 +5,16 @@ const http = require("http").Server(app);
 const socketIo = require("socket.io");
 const path = require("path");
 const passport = require("passport");
-
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const db = require("./database/db");
 const userRoutes = require("./routes/UserRoutes");
 const messageRoutes = require("./routes/Messages");
 // const groupRoutes = require("./routes/Groups"); // Import group routes
+const ejs = require("ejs");
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
 const Message = require("./model/MessageSchema");
 const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
