@@ -294,18 +294,28 @@ router.post("/forgot-password", validateForgotPassword, async (req, res) => {
 });
 router.post("/verifyuser", async (req, res) => {
   const { email, otp } = req.body;
+  console.log("Email>>>>>>>>>>>>", req.body);
 
   try {
     const user = await User.findOne({ email });
+    console.log("user Data>>>>>>>>", user);
+    console.log("user Expires Date>>>>>>>>", user.resetPasswordExpires);
+    console.log("user Otp >>>>>>>>", user.resetPasswordCode);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (user.otp !== otp || user.resetPasswordExpires < Date.now()) {
-      return res.status(400).json({ error: "Invalid or expired OTP" });
+    // Check if OTP matches and if it is not expired
+    if (user.resetPasswordCode !== otp) {
+      return res.status(400).json({ error: "Invalid OTP" });
     }
 
+    if (user.resetPasswordExpires < Date.now()) {
+      return res.status(400).json({ error: "Expired OTP" });
+    }
+
+    // Clear OTP and expiration date after successful verification
     user.resetPasswordCode = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
@@ -320,6 +330,7 @@ router.post("/verifyuser", async (req, res) => {
       .json({ error: "Internal server error. Please try again later." });
   }
 });
+
 // Resend Otp
 router.post("/resendotp", async (req, res) => {
   const { email } = req.body;
