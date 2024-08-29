@@ -56,8 +56,10 @@
       // Example: Sending a message to the server
       function sendMessage() {
         const message = document.getElementById("message-input").value;
-        const receiverId = "66cebb4f8779177a16758131"; // Replace with the actual receiver ID
-        const senderId = "66cecb877f03df8de0f404a8"; // Replace with your actual sender ID
+        // const receiverId = "66cebb4f8779177a16758131"; // Replace with the actual receiver ID
+        // const senderId = "66cecb877f03df8de0f404a8"; // Replace with your actual sender ID
+        const receiverId = "66cecb877f03df8de0f404a8"; // Replace with the actual receiver ID
+        const senderId = "66cebb4f8779177a16758131"; // Replace with your actual sender ID
 
         socket.emit("sendMessage", {
           senderId: senderId,
