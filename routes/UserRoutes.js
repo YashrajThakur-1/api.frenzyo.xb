@@ -321,6 +321,36 @@ router.post("/verifyuser", async (req, res) => {
       .json({ error: "Internal server error. Please try again later." });
   }
 });
+// Resend Otp
+router.post("/resendotp", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const otp = generateVerificationCode();
+    const otpExpires = new Date(Date.now() + 90 * 1000); // OTP expires in 90 seconds
+
+    user.resetPasswordCode = otp;
+    user.resetPasswordExpires = otpExpires;
+    await user.save();
+
+    await sendMail(email, otp);
+    res.status(200).json({
+      message: "OTP resent to your email. Please check your email for the OTP.",
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error. Please try again later." });
+  }
+});
 // Reset Password route
 router.post("/reset-password", validateResetPassword, async (req, res) => {
   const { email, verificationCode, newPassword } = req.body;
