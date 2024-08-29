@@ -315,7 +315,6 @@ router.post("/verifyuser", async (req, res) => {
       return res.status(400).json({ error: "Expired OTP" });
     }
 
-    // Clear OTP and expiration date after successful verification
     user.resetPasswordCode = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
@@ -349,9 +348,9 @@ router.post("/resendotp", async (req, res) => {
     user.resetPasswordExpires = otpExpires;
     await user.save();
 
-    await sendMail(email, otp);
+    await sendVerificationCode(email, otp);
     res.status(200).json({
-      message: "OTP resent to your email. Please check your email for the OTP.",
+      message: "OTP resent to your email.",
       status: true,
     });
   } catch (error) {
