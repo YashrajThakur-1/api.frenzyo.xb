@@ -393,9 +393,10 @@ router.post("/reset-password", validateResetPassword, async (req, res) => {
 });
 
 // Theme Refrence
-router.put("'/theme", async (req, res) => {
+router.put("'/theme", jsonAuthMiddleware, async (req, res) => {
   try {
-    const { userId, themePreference } = req.body;
+    const userId = req.user.userData._id;
+    const { themePreference } = req.body;
 
     if (!["light", "dark", "system_default"].includes(themePreference)) {
       return res.status(400).json({ msg: "Invalid theme preference" });
