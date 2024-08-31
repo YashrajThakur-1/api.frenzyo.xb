@@ -247,16 +247,19 @@ router.get("/group/:groupId/messages", jsonAuthMiddleware, async (req, res) => {
 router.get("/chats", jsonAuthMiddleware, async (req, res) => {
   const userId = req.user.userData._id;
   try {
+    console.log("userId>>>>>", userId); // Corrected typo
     // Find all messages where the user is either the sender or the receiver
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
     })
-      .populate("sender", "name email") // Populate sender details
-      .populate("receiver", "name email") // Populate receiver details
+      .populate("sender", "name email profile_picture google_image_url") // Populate sender details
+      .populate("receiver", "name email profile_picture google_image_url ") // Populate receiver details
       .sort("-sentAt"); // Sort by latest message first
 
     // Create a map to store the latest message for each user
     const chatMap = new Map();
+    console.log("messages>>>>>", messages); // Corrected typo
+    console.log("chatMap>>>>>", chatMap); // Corrected typo
 
     messages.forEach((message) => {
       const otherUser =
@@ -280,7 +283,7 @@ router.get("/chats", jsonAuthMiddleware, async (req, res) => {
     const chatList = Array.from(chatMap.values()).sort(
       (a, b) => b.latestMessage.sentAt - a.latestMessage.sentAt
     );
-
+    console.log("CHatttttt>>>>>", chatList); // Corrected typo
     res.status(200).json(chatList);
   } catch (error) {
     console.log("Error is", error);
