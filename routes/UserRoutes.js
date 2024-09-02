@@ -383,7 +383,7 @@ router.post("/reset-password", async (req, res) => {
 });
 
 // Theme Refrence
-router.put("'/theme", jsonAuthMiddleware, async (req, res) => {
+router.put("/theme", jsonAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.userData._id;
     const { themePreference } = req.body;
@@ -400,9 +400,10 @@ router.put("'/theme", jsonAuthMiddleware, async (req, res) => {
     user.themePreference = themePreference;
     await user.save();
 
-    res.json({ msg: "Theme preference updated successfully" });
+    res.json({ user: user, msg: "Theme preference updated successfully" });
   } catch (err) {
-    res.status(500).send("Server error");
+    console.error(err.message);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
@@ -419,10 +420,7 @@ router.post("/search-users", async (req, res) => {
     });
 
     res.status(200).json(users);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
+  } catch (err) {}
 });
 
 // Google Authentication Route

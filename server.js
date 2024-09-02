@@ -91,7 +91,6 @@ io.on("connection", (socket) => {
         polls: data.polls,
         contacts: data.contacts,
       });
-
       await newMessage.save();
 
       // Emit the message to the specific receiver
@@ -99,6 +98,30 @@ io.on("connection", (socket) => {
       console.log("Message sent and saved:", newMessage);
     } catch (error) {
       console.error("Error sending message:", error);
+    }
+  });
+  //Get by Single ID and Delete
+
+  socket.on("deleteMessage", async (messageId) => {
+    console.log("deleteMessage event received with messageId:", messageId);
+
+    try {
+      // Find and delete the message by its ID
+      const deletedMessage = await Message.findByIdAndDelete({
+        _id: messageId,
+      });
+
+      if (deletedMessage) {
+        console.log("Message deleted successfully:", deletedMessage);
+
+        // Notify the sender and receiver about the deletion
+        io.to(deletedMessage.sender).emit("messageDeleted", messageId);
+        io.to(deletedMessage.receiver).emit("messageDeleted", messageId);
+      } else {
+        console.log("Message not found or already deleted.");
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   });
 
