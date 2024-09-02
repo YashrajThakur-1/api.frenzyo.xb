@@ -4,6 +4,7 @@ const Message = require("../model/MessageSchema");
 const Group = require("../model/GroupSchema");
 const { jsonAuthMiddleware } = require("../authorization/auth");
 const upload = require("../middleware/multer");
+const User = require("../model/UserSchema");
 
 // Create a new message
 router.post("/message", jsonAuthMiddleware, async (req, res) => {
@@ -70,25 +71,40 @@ router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
 
 // Add a photo to a message
 router.post(
-  "/message/:messageId/photos",
+  "/message/:senderId/photos",
   jsonAuthMiddleware,
   upload.array("photo", 10),
   async (req, res) => {
-    const { messageId } = req.params;
+    const { senderId } = req.params;
+
     try {
-      const message = await Message.findById(messageId);
+      const message = await Message.findOne({ sender: senderId }); // Adjust this to find the specific message by ID
       if (!message) {
         return res.status(404).json({ message: "Message not found" });
       }
-      const photo = {
-        fileName: req.file.filename,
-        fileSize: req.file.size,
-        url: req.file.filename,
-        timestamp: new Date(),
-      };
-      message.photos.push(photo);
-      await message.save();
-      res.status(200).json(message);
+
+      // Ensure photos array exists
+      if (!message.photos) {
+        message.photos = [];
+      }
+
+      if (req.files && req.files.length > 0) {
+        // Add photos to message.photos
+        req.files.forEach((file) => {
+          const photo = {
+            fileName: file.filename,
+            fileSize: file.size,
+            url: file.filename, // Change this to the actual URL if needed
+            timestamp: new Date(),
+          };
+          message.photos.push(photo);
+        });
+
+        await message.save();
+        return res.status(200).json(message);
+      } else {
+        return res.status(400).json({ msg: "No files uploaded" });
+      }
     } catch (error) {
       console.log("Error is", error);
       res.status(500).json({ message: error.message });
@@ -98,27 +114,36 @@ router.post(
 
 // Add a document to a message
 router.post(
-  "/message/:messageId/documents",
+  "/message/:senderId/documents",
   jsonAuthMiddleware,
   upload.array("documents", 10),
-
   async (req, res) => {
-    const { messageId } = req.params;
+    const { senderId } = req.params;
+
     try {
-      const message = await Message.findById(messageId);
+      // Adjusted to find a message by senderId
+      const message = await Message.findOne({ sender: senderId });
       if (!message) {
         return res.status(404).json({ message: "Message not found" });
       }
-      const document = {
-        documentName: req.file.originalname,
-        documentType: req.file.mimetype,
-        documentSize: req.file.size,
-        url: req.file.filename,
-        timestamp: new Date(),
-      };
-      message.documents.push(document);
-      await message.save();
-      res.status(200).json(message);
+
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+          const document = {
+            documentName: file.originalname,
+            documentType: file.mimetype,
+            documentSize: file.size,
+            url: file.filename, // Change this to the actual URL if needed
+            timestamp: new Date(),
+          };
+          message.documents.push(document);
+        });
+
+        await message.save();
+        return res.status(200).json(message);
+      } else {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
     } catch (error) {
       console.log("Error is", error);
       res.status(500).json({ message: error.message });
@@ -247,19 +272,15 @@ router.get("/group/:groupId/messages", jsonAuthMiddleware, async (req, res) => {
 router.get("/chats", jsonAuthMiddleware, async (req, res) => {
   const userId = req.user.userData._id;
   try {
-    console.log("userId>>>>>", userId); // Corrected typo
-    // Find all messages where the user is either the sender or the receiver
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
     })
-      .populate("sender", "name email profile_picture google_image_url") // Populate sender details
-      .populate("receiver", "name email profile_picture google_image_url ") // Populate receiver details
+      .populate("sender", "name email profile_picture google_image_url")
+      .populate("receiver", "name email profile_picture google_image_url ")
       .sort("-sentAt"); // Sort by latest message first
 
     // Create a map to store the latest message for each user
     const chatMap = new Map();
-    console.log("messages>>>>>", messages); // Corrected typo
-    console.log("chatMap>>>>>", chatMap); // Corrected typo
 
     messages.forEach((message) => {
       const otherUser =
