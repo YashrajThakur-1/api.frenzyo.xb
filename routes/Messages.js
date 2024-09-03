@@ -130,10 +130,10 @@ router.post(
         // Iterate over each uploaded file and create a document object
         req.files.forEach((file) => {
           const document = {
-            documentName: file.originalname,
-            documentType: file.mimetype,
-            documentSize: file.size,
-            url: file.filename, // Change this to the actual URL if needed
+            name: file.originalname,
+            type: file.mimetype,
+            size: file.size,
+            uri: file.filename, // Change this to the actual URL if needed
             timestamp: new Date(),
           };
           documents.push(document);

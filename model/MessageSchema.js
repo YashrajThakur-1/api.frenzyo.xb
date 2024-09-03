@@ -10,10 +10,10 @@ const photoSchema = new Schema({
 });
 
 const documentSchema = new Schema({
-  documentName: String,
-  documentType: String,
-  documentSize: Number,
-  url: String,
+  name: String,
+  type: String,
+  size: Number,
+  uri: String,
   timestamp: { type: Date, default: Date.now },
 });
 
