@@ -6,6 +6,10 @@ const photoSchema = new Schema({
   fileName: String,
   fileSize: Number,
   url: String,
+  isLocal: {
+    type: Boolean,
+    Default: false,
+  },
   timestamp: { type: Date, default: Date.now },
 });
 
@@ -14,16 +18,28 @@ const documentSchema = new Schema({
   type: String,
   size: Number,
   uri: String,
+  isLocal: {
+    type: Boolean,
+    Default: false,
+  },
   timestamp: { type: Date, default: Date.now },
 });
 
 const pollOptionSchema = new Schema({
   option: String,
+  isLocal: {
+    type: Boolean,
+    Default: false,
+  },
   votes: { type: Number, default: 0 },
 });
 
 const pollSchema = new Schema({
   question: String,
+  isLocal: {
+    type: Boolean,
+    Default: false,
+  },
   options: [pollOptionSchema],
   createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   createdAt: { type: Date, default: Date.now },
@@ -34,6 +50,10 @@ const pollSchema = new Schema({
 const contactSchema = new Schema({
   name: String,
   email: String,
+  isLocal: {
+    type: Boolean,
+    Default: false,
+  },
   phoneNumber: String,
   profilePicture: String,
   address: String,

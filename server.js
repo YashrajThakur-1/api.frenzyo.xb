@@ -20,7 +20,7 @@ const Group = require("./model/GroupSchema");
 const wallpaperRoutes = require("./routes/Wallpaper");
 const storyRoutes = require("./routes/Story");
 const contactRoutes = require("./routes/contactroutes");
-const upload = require("./middleware/multer");
+const upload = require("./middleware/socketUploadMiddleware");
 
 // Middleware and configurations
 app.use(
@@ -62,36 +62,64 @@ io.on("connection", (socket) => {
   console.log("New client connected. Socket ID:", socket.id);
 
   // Handle direct messages
-  socket.on(
-    "sendMessage",
-    // upload.array("documents", 10),
-    // upload.array("photo", 10),
-    async (data) => {
-      console.log("sendMessage event received with data:", data);
+  socket.on("sendMessage", async (data) => {
+    console.log("sendMessage event received with data:", data);
 
-      try {
-        // Handle file uploads and save message
+    try {
+      // Initialize arrays to store documents and photos
+      const documents = [];
+      const photos = [];
 
-        const newMessage = new Message({
-          ...data,
-          sender: data.senderId,
-          receiver: data.receiverId,
-          message: data.text,
-          // photos: photos,
-          // documents: documents,
-          polls: data.polls,
-          contacts: data.contacts,
+      // Handle documents
+      if (data.documents) {
+        data.documents.forEach((file) => {
+          const document = {
+            name: file.originalname,
+            type: file.mimetype,
+            size: file.size,
+            uri: file.filename, // File path or URL
+            timestamp: new Date(),
+          };
+          documents.push(document);
         });
-        await newMessage.save();
-
-        // Emit the message to the specific receiver
-        io.to(data.receiverId).emit("receiveMessage", newMessage);
-        console.log("Message sent and saved:", newMessage);
-      } catch (error) {
-        console.error("Error sending message:", error);
       }
+
+      // Handle photos
+      if (data.photos) {
+        data.photos.forEach((file) => {
+          const photo = {
+            fileName: file.filename,
+            fileSize: file.size,
+            url: file.filename, // File path or URL
+            timestamp: new Date(),
+          };
+          photos.push(photo);
+        });
+      }
+
+      // Create a new message with the uploaded files
+      const newMessage = new Message({
+        ...data,
+        sender: data.senderId,
+        receiver: data.receiverId,
+        message: data.text,
+        photos: photos,
+        documents: documents,
+        polls: data.polls,
+        contacts: data.contacts,
+      });
+
+      await newMessage.save();
+
+      // Emit the message to the specific receiver
+      io.to(data.receiverId).emit("receiveMessage", newMessage);
+      console.log("Message sent and saved:", newMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      socket.emit("error", "An error occurred while sending the message.");
     }
-  );
+  });
+
   //Get by Single ID and Delete
 
   socket.on("deleteMessage", async (messageId) => {
