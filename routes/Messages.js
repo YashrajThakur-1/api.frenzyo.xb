@@ -77,23 +77,14 @@ router.post(
   async (req, res) => {
     const { receiverId } = req.params;
     const senderId = req.user.userData._id;
+    const { file_message } = req.body;
 
     try {
-      const message = await Message.findOne({
-        sender: senderId,
-        receiver: receiverId,
-      });
-      if (!message) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
       // Ensure photos array exists
-      if (!message.photos) {
-        message.photos = [];
-      }
-
+      const photos = [];
       if (req.files && req.files.length > 0) {
         // Add photos to message.photos
+        console.log(req.file);
         req.files.forEach((file) => {
           const photo = {
             fileName: file.filename,
@@ -101,11 +92,16 @@ router.post(
             url: file.filename, // Change this to the actual URL if needed
             timestamp: new Date(),
           };
-          message.photos.push(photo);
+          photos.push(photo);
         });
-
-        await message.save();
-        return res.status(200).json(message);
+        const newMessage = new Message({
+          file_message: file_message,
+          photos: photos,
+          receiver: receiverId,
+          sender: senderId,
+        });
+        await newMessage.save();
+        return res.status(200).json(newMessage);
       } else {
         return res.status(400).json({ msg: "No files uploaded" });
       }
@@ -124,17 +120,14 @@ router.post(
   async (req, res) => {
     const { receiverId } = req.params;
     const senderId = req.user.userData._id;
+    const { file_message } = req.body;
 
     try {
-      const message = await Message.findOne({
-        sender: senderId,
-        receiver: receiverId,
-      });
-      if (!message) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
       if (req.files && req.files.length > 0) {
+        // Initialize an empty array to store documents
+        const documents = [];
+
+        // Iterate over each uploaded file and create a document object
         req.files.forEach((file) => {
           const document = {
             documentName: file.originalname,
@@ -143,11 +136,20 @@ router.post(
             url: file.filename, // Change this to the actual URL if needed
             timestamp: new Date(),
           };
-          message.documents.push(document);
+          documents.push(document);
         });
 
-        await message.save();
-        return res.status(200).json(message);
+        // Create a new message object
+        const newMessage = new Message({
+          file_message: file_message,
+          documents: documents, // Save the array of documents
+          receiver: receiverId,
+          sender: senderId, // Set the sender to the logged-in user
+        });
+
+        // Save the new message to the database
+        await newMessage.save();
+        return res.status(200).json(newMessage); // Return the newly created message
       } else {
         return res.status(400).json({ message: "No files uploaded" });
       }
