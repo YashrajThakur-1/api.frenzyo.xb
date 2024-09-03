@@ -8,7 +8,7 @@ const photoSchema = new Schema({
   url: String,
   isLocal: {
     type: Boolean,
-    Default: false,
+    default: false,
   },
   timestamp: { type: Date, default: Date.now },
 });
@@ -20,7 +20,7 @@ const documentSchema = new Schema({
   uri: String,
   isLocal: {
     type: Boolean,
-    Default: false,
+    default: false,
   },
   timestamp: { type: Date, default: Date.now },
 });
@@ -29,7 +29,7 @@ const pollOptionSchema = new Schema({
   option: String,
   isLocal: {
     type: Boolean,
-    Default: false,
+    default: false,
   },
   votes: { type: Number, default: 0 },
 });
@@ -38,7 +38,7 @@ const pollSchema = new Schema({
   question: String,
   isLocal: {
     type: Boolean,
-    Default: false,
+    default: false,
   },
   options: [pollOptionSchema],
   createdBy: { type: Schema.Types.ObjectId, ref: "User" },
@@ -52,7 +52,7 @@ const contactSchema = new Schema({
   email: String,
   isLocal: {
     type: Boolean,
-    Default: false,
+    default: false,
   },
   phoneNumber: String,
   profilePicture: String,
