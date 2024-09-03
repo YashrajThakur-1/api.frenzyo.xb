@@ -66,57 +66,83 @@ io.on("connection", (socket) => {
     console.log("sendMessage event received with data:", data);
 
     try {
-      // Initialize arrays to store documents and photos
-      const documents = [];
-      const photos = [];
+      // Simulate req and res objects for Multer
+      const req = {
+        body: data,
+        files: data.files,
+        headers: {
+          "content-type": "multipart/form-data",
+          // Add other necessary headers that Multer might expect
+        },
+        get: (header) => req.headers[header.toLowerCase()],
+      };
 
-      // Handle documents
-      if (data.documents) {
-        data.documents.forEach((file) => {
-          const document = {
-            name: file.originalname,
-            type: file.mimetype,
-            size: file.size,
-            uri: file.filename, // File path or URL
-            timestamp: new Date(),
-          };
-          documents.push(document);
+      const res = {
+        statusCode: 200,
+        setHeader: () => {},
+        end: () => {},
+      };
+
+      // Invoke Multer middleware
+      upload(req, res, async (err) => {
+        if (err) {
+          console.error("Error during file upload:", err);
+          socket.emit("error", "File upload failed.");
+          return;
+        }
+
+        // Handle photos
+        const photos = [];
+        if (req.files && req.files.photos && req.files.photos.length > 0) {
+          req.files.photos.forEach((file) => {
+            const photo = {
+              fileName: file.originalname,
+              fileSize: file.size,
+              url: file.filename, // Change this to the actual URL if needed
+              timestamp: new Date(),
+            };
+            photos.push(photo);
+          });
+        }
+
+        // Handle documents
+        const documents = [];
+        if (
+          req.files &&
+          req.files.documents &&
+          req.files.documents.length > 0
+        ) {
+          req.files.documents.forEach((file) => {
+            const document = {
+              name: file.originalname,
+              type: file.mimetype,
+              size: file.size,
+              uri: file.filename, // Change this to the actual URL if needed
+              timestamp: new Date(),
+            };
+            documents.push(document);
+          });
+        }
+
+        const newMessage = new Message({
+          ...data,
+          sender: data.senderId,
+          receiver: data.receiverId,
+          message: data.text,
+          photos: photos,
+          documents: documents,
+          polls: data.polls,
+          contacts: data.contacts,
         });
-      }
 
-      // Handle photos
-      if (data.photos) {
-        data.photos.forEach((file) => {
-          const photo = {
-            fileName: file.filename,
-            fileSize: file.size,
-            url: file.filename, // File path or URL
-            timestamp: new Date(),
-          };
-          photos.push(photo);
-        });
-      }
+        await newMessage.save();
 
-      // Create a new message with the uploaded files
-      const newMessage = new Message({
-        ...data,
-        sender: data.senderId,
-        receiver: data.receiverId,
-        message: data.text,
-        photos: photos,
-        documents: documents,
-        polls: data.polls,
-        contacts: data.contacts,
+        // Emit the message to the specific receiver
+        io.to(data.receiverId).emit("receiveMessage", newMessage);
+        console.log("Message sent and saved:", newMessage);
       });
-
-      await newMessage.save();
-
-      // Emit the message to the specific receiver
-      io.to(data.receiverId).emit("receiveMessage", newMessage);
-      console.log("Message sent and saved:", newMessage);
     } catch (error) {
       console.error("Error sending message:", error);
-      socket.emit("error", "An error occurred while sending the message.");
     }
   });
 
