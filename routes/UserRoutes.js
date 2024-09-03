@@ -226,6 +226,7 @@ router.put(
   jsonAuthMiddleware,
   upload.single("profile_picture"),
   async (req, res) => {
+    s;
     try {
       const userId = req.user.userData._id;
       const updates = req.body;

@@ -71,14 +71,18 @@ router.get("/message/group/:groupId", jsonAuthMiddleware, async (req, res) => {
 
 // Add a photo to a message
 router.post(
-  "/message/:senderId/photos",
+  "/message/:receiverId/photos",
   jsonAuthMiddleware,
   upload.array("photo", 10),
   async (req, res) => {
-    const { senderId } = req.params;
+    const { receiverId } = req.params;
+    const senderId = req.user.userData._id;
 
     try {
-      const message = await Message.findOne({ sender: senderId }); // Adjust this to find the specific message by ID
+      const message = await Message.findOne({
+        sender: senderId,
+        receiver: receiverId,
+      });
       if (!message) {
         return res.status(404).json({ message: "Message not found" });
       }
@@ -114,15 +118,18 @@ router.post(
 
 // Add a document to a message
 router.post(
-  "/message/:senderId/documents",
+  "/message/:receiverId/documents",
   jsonAuthMiddleware,
   upload.array("documents", 10),
   async (req, res) => {
-    const { senderId } = req.params;
+    const { receiverId } = req.params;
+    const senderId = req.user.userData._id;
 
     try {
-      // Adjusted to find a message by senderId
-      const message = await Message.findOne({ sender: senderId });
+      const message = await Message.findOne({
+        sender: senderId,
+        receiver: receiverId,
+      });
       if (!message) {
         return res.status(404).json({ message: "Message not found" });
       }
